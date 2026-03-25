@@ -1,34 +1,47 @@
+@Library("Shared") _
 pipeline{
-    agent { label 'dev-server' }
+    agent any
     
     stages{
-        stage("Code Clone"){
+        stage("Hello"){
+    	    steps{
+		        script{
+			        hello()
+		        }       	
+    	    }
+    	}
+        stage("Clone Code"){
             steps{
-                echo "Code Clone Stage"
-                git url: "https://github.com/LondheShubham153/node-todo-cicd.git", branch: "master"
-            }
-        }
-        stage("Code Build & Test"){
-            steps{
-                echo "Code Build Stage"
-                sh "docker build -t node-app ."
-            }
-        }
-        stage("Push To DockerHub"){
-            steps{
-                withCredentials([usernamePassword(
-                    credentialsId:"dockerHubCreds",
-                    usernameVariable:"dockerHubUser", 
-                    passwordVariable:"dockerHubPass")]){
-                sh 'echo $dockerHubPass | docker login -u $dockerHubUser --password-stdin'
-                sh "docker image tag node-app:latest ${env.dockerHubUser}/node-app:latest"
-                sh "docker push ${env.dockerHubUser}/node-app:latest"
+            	script{
+                	clone("https://github.com/piyushadhalikar/node-todo-cicd.git", "master")
                 }
             }
         }
-        stage("Deploy"){
+        stage("build"){
             steps{
-                sh "docker compose down && docker compose up -d --build"
+            	script{
+                	docker_build("node-app-test","latest","piyusha19")
+                }
+            }
+        }
+        stage("test"){
+            steps{
+                echo "code testing done"
+            }
+        }
+        stage("push to DockerHub"){
+            steps{
+            	script{
+            		docker_push("node-app-test","latest","piyusha19")
+            	}    
+                echo "code pushed to dockerhub"
+            }
+        }
+        stage("deploy"){
+            steps{
+            	script{
+                	docker_compose()
+                }
             }
         }
     }
