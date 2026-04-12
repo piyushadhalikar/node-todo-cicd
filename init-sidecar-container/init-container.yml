@@ -1,0 +1,45 @@
+kind: Pod
+apiVersion: v1
+metadata: 
+  name: init-test
+
+spec:
+  initContainers:
+  - name: init-container
+    image: busybox:latest
+    command: ["sh","-c", "echo 'Initialization started ...'; sleep 10; echo 'Initialization completed.'"]
+
+  containers:
+  - name: main-container
+    image: busybox:latest
+    command: ["sh","-c", "echo 'Main container started'"]
+
+#Output:
+
+1. create init-container
+  kubectl apply -f init-container.yml
+  pod/init-test created
+
+2. get pods, init container running
+  kubectl get pods
+  NAME        READY   STATUS     RESTARTS   AGE
+  init-test   0/1     Init:0/1   0          11s
+  kubectl get pods
+  NAME        READY   STATUS            RESTARTS   AGE
+  init-test   0/1     PodInitializing   0          12s
+  completed after task is done
+  kubectl get pods
+  NAME        READY   STATUS      RESTARTS   AGE
+  init-test   0/1     Completed   0          14s
+
+3. to get logs of container 
+  kubectl logs init-test -c init-container -c main-container
+  Main container started
+  for init-container
+  kubectl logs init-test -c init-container
+  Initialization started ...
+  Initialization completed.
+
+4. delete init-container
+  kubectl delete pod init-test
+  pod "init-test" deleted
