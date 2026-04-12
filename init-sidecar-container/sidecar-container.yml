@@ -1,0 +1,66 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: sidecar-test
+
+spec:
+  volumes:
+  - name: shared-logs
+    emptyDir: {}
+
+  containers:   #to run containers parallely
+  #produce logs
+  - name: main-container
+    image: busybox
+    command: ["sh","-c", "while true; do echo 'Hello Everyone' >> /var/log/app.log; sleep 5; done"]
+  
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log/
+
+  #display logs
+  - name: sidecar-container
+    image: busybox
+    command: ["sh","-c", "tail -f /var/log/app.log"]
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log/
+
+
+#Output:
+
+1. create or apply
+  kubectl apply -f sidecar-container.yml 
+  pod/sidecar-test created
+
+2. get pods 
+  kubectl get pods
+  NAME           READY   STATUS    RESTARTS   AGE
+  sidecar-test   2/2     Running   0          6s
+
+3. check logs
+  main container producing logs so empty
+  kubectl logs sidecar-test -c main-container
+  sidecar-container storing logs
+  kubectl logs sidecar-test -c sidecar-container
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
+  Hello Everyone
