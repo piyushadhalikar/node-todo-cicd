@@ -1,0 +1,32 @@
+1. create helm chart
+  helm create node-js-app
+  Creating node-js-app
+
+2. package after adding dockerhub_user/image name and tag in values.yaml
+  helm package node-js-app/
+  Successfully packaged chart and saved it to: /home/ubuntu/kubernetes-practice/helm/node-js-app-0.1.0.tgz
+3. install
+  helm install dev-node-js-app node-js-app -n dev-node --create-namespace
+  NAME: dev-node-js-app
+  LAST DEPLOYED: Sun Apr 12 10:55:25 2026
+  NAMESPACE: dev-node
+  STATUS: deployed
+  REVISION: 1
+  DESCRIPTION: Install complete
+  NOTES:
+  1. Get the application URL by running these commands:
+    export POD_NAME=$(kubectl get pods --namespace dev-node -l "app.kubernetes.io/name=node-js-app,app.kubernetes.io/instance=dev-node-js-app" -o jsonpath="{.items[0].metadata.name}")
+    export CONTAINER_PORT=$(kubectl get pod --namespace dev-node $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+    echo "Visit http://127.0.0.1:8080 to use your application"
+    kubectl --namespace dev-node port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+4. kubectl get pods -n dev-node
+  NAME                               READY   STATUS    RESTARTS   AGE
+  dev-node-js-app-6d8c957b56-j2jfm   1/1     Running   0          3m31s
+
+5. kubectl get svc -n dev-node
+  NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+  dev-node-js-app   ClusterIP   10.97.164.53   <none>        8000/TCP   4m35s
+
+6. to check its working on masterip:8000 
+  kubectl port-forward svc/dev-node-js-app 8000:8000 -n dev-node --address=0.0.0.0
