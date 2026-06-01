@@ -1,0 +1,64 @@
+1 Install docker and aws cli in ec2 and add user in docker group
+
+2 configure aws cli on ec2 after creating user with access ID and secret key
+
+3 add/attach policy to user to access ec2,ecr,ecs
+before
+
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 045511193332.dkr.ecr.ap-south-1.amazonaws.com
+
+aws: [ERROR]: An error occurred (NoCredentials): Unable to locate credentials. You can configure credentials by running "aws login".
+error: cannot perform an interactive login from a non TTY device
+
+after
+
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 045511193332.dkr.ecr.ap-south-1.amazonaws.com
+
+WARNING! Your credentials are stored unencrypted in '/home/ubuntu/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+Login Succeeded
+
+
+4 docker build to create image
+docker build -t node-app .
+
+5 tag image before pushing it to ecr
+before
+docker images
+                                                                                                                          i Info →   U  In Use
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+node-app:latest      1141206f3473        181MB         36.6MB        
+node:12.2.0-alpine   2ab3d9a1bac6        121MB         26.6MB        
+
+docker tag node-app:latest 045511193332.dkr.ecr.ap-south-1.amazonaws.com/node-app:latest
+after
+
+docker images
+                                                                                                                          i Info →   U  In Use
+IMAGE                                                           ID             DISK USAGE   CONTENT SIZE   EXTRA
+045511193332.dkr.ecr.ap-south-1.amazonaws.com/node-app:latest   1141206f3473        181MB         36.6MB        
+node-app:latest                                                 1141206f3473        181MB         36.6MB        
+node:12.2.0-alpine                                              2ab3d9a1bac6        121MB         26.6MB        
+public.ecr.aws/e6y9b9q8/node-app:latest                         1141206f3473        181MB         36.6MB       
+
+6 push image from ec2 to ecr 
+docker push public.ecr.aws/e6y9b9q8/node-app:latest
+The push refers to repository [public.ecr.aws/e6y9b9q8/node-app]
+301aed4811aa: Pushed 
+bc302cdecd7a: Pushed 
+e76c3bf2ee8f: Pushed 
+3bcb5e14be53: Pushed 
+e7c96db7181b: Pushed 
+a9b145f64bbe: Pushed 
+6b1f88c31990: Pushed 
+latest: digest: sha256:1141206f34732d5783791cec8ae6199e875edee73233d2f9c40efb4c179e6d21 size: 1854
+
+7 create ecs cluster "node-app-cluster" fargate(serverless)
+
+8 create task definition to run task-" Fargate, Linux_x86_64 architecture,1 cpu 3gb, create task role-ecsTaskExecutionRole and attach policy-AmazonECSTaskExecutionRolePolicy, container name -node-container,view in gallery and paste image url, add port mapping 80 ssh and 8000 application, resource allocation-2cpu,memory hard/soft-8,1,env variable
+
+9 run task in cluster
+go on cluster and copy public ip and check on 8000 port.
+if app not running go to eni id-> security group and add 8000 port then application will be running.
